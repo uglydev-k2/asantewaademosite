@@ -86,11 +86,19 @@
 }
 
 :root {
-  color-scheme: light dark;
+  --color-primary: #047857;
+  --color-primary-dark: #065f46;
+  --color-primary-light: #d1fae5;
+  --color-accent: #f59e0b;
+  --color-surface: #ffffff;
+  --color-bg: #f9fafb;
+  --color-text: #111827;
+  --color-muted: #6b7280;
+  --color-border: #e5e7eb;
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased dark:bg-slate-950 dark:text-slate-100;
+  @apply bg-slate-50 text-slate-900 antialiased;
 }
 
 .checkout-success-circle {

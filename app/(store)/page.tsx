@@ -1,190 +1,130 @@
-import { FlashSaleBanner } from "@/components/store/flash-sale-banner";
-import { ProductCard } from "@/components/store/product-card";
-import { products } from "@/lib/data/products";
-import { Button } from "@/components/ui/button";
-import { EcosystemBadge } from "@/components/shared/ecosystem-badge";
+import Image from "next/image";
 import Link from "next/link";
+import { CheckCircle2, Headset, Truck } from "lucide-react";
+import { HeroCarousel } from "@/components/home/HeroCarousel";
+import { NewsletterSection } from "@/components/home/NewsletterSection";
+import { ProductCard } from "@/components/shop/ProductCard";
+import { asantewaaProducts } from "@/lib/data/storefront";
+import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
   const categories = [
-    "Smart Lighting",
-    "Smart Security",
-    "Smart Sockets",
-    "Doorbells",
-    "Smart Locks",
-    "Accessories"
+    { name: "Top sellers — Kitchen Essentials", slug: "kitchen-essentials", image: "https://images.unsplash.com/photo-1556911220-bff31c812dba?q=80&w=1200", badge: "Top sellers" },
+    { name: "Premium picks — Electronics", slug: "electronics", image: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200", badge: "Premium picks" },
+    { name: "Best value — Fashion & Dresses", slug: "fashion-dresses", image: "https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=1200", badge: "Best value" },
+    { name: "Just landed — New Arrivals", slug: "new-arrivals", image: "https://images.unsplash.com/photo-1529139574466-a303027c1d8b?q=80&w=1200", badge: "Just landed" }
   ];
+  const featured = asantewaaProducts.filter((product) => product.is_featured).slice(0, 8);
+  const freshStock = [...asantewaaProducts].sort((a, b) => b.id - a.id).slice(0, 4);
 
   return (
     <div className="space-y-8 md:space-y-12">
-      <section className="rounded-xl bg-slate-100 p-2 text-center text-xs font-semibold md:rounded-2xl md:p-3 md:text-sm dark:bg-slate-800">
-        Smart Home Service Week - Book setup, automation, and maintenance at discounted rates.
-      </section>
-      <section className="grid gap-4 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-700 p-5 text-white md:p-8 lg:grid-cols-[1.5fr_1fr]">
-        <div>
-          <p className="mb-2 text-xs uppercase tracking-[0.2em] text-indigo-200 md:text-sm">Smart living, simplified</p>
-          <h1 className="max-w-2xl text-3xl font-extrabold leading-tight md:text-4xl lg:text-5xl">
-            Build your intelligent home with installease
-          </h1>
-          <p className="mt-3 max-w-xl text-sm text-slate-200 md:text-base">
-            Smart home services for installation, configuration, and optimization across security, lighting, locks, and automation routines.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link href="/products">
-              <Button>Shop Now</Button>
-            </Link>
-            <Link href="/signup">
-              <Button variant="secondary">Create Account</Button>
-            </Link>
-          </div>
+      <HeroCarousel />
+      <section>
+        <div className="mb-5 flex items-end justify-between">
+          <h2 className="text-2xl font-semibold">Find exactly what you need</h2>
+          <Link href="/shop" className="text-sm font-semibold text-emerald-700">
+            Browse full catalogue →
+          </Link>
         </div>
-        <div className="rounded-2xl bg-white/10 p-5 backdrop-blur">
-          <p className="text-sm font-medium text-indigo-100">Ecosystem Compatibility</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            <EcosystemBadge ecosystem="alexa" />
-            <EcosystemBadge ecosystem="google" />
-            <EcosystemBadge ecosystem="homekit" />
-            <EcosystemBadge ecosystem="matter" />
-          </div>
-          <p className="mt-4 text-sm text-slate-200">
-            Share your ecosystem profile once, and we recommend compatible setup services.
-          </p>
-        </div>
-      </section>
-
-      <section className="rounded-xl border bg-white p-3 md:rounded-2xl md:p-4 dark:bg-slate-900">
-        <div className="flex gap-2 overflow-x-auto [&::-webkit-scrollbar]:hidden md:flex-wrap">
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
           {categories.map((category) => (
-            <button
-              key={category}
-              className="whitespace-nowrap rounded-full border bg-slate-50 px-4 py-2 text-xs font-medium hover:bg-indigo-50 md:text-sm dark:bg-slate-800"
-            >
-              {category}
-            </button>
+            <Link href={`/shop?category=${category.slug}`} key={category.slug} className="group relative overflow-hidden rounded-2xl">
+              <Image src={category.image} alt={category.name} width={700} height={700} className="h-52 w-full object-cover transition group-hover:scale-105" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/65 to-transparent" />
+              <span className="absolute left-3 top-3 rounded-full bg-amber-500 px-2 py-1 text-xs font-semibold text-white">{category.badge}</span>
+              <p className="absolute bottom-3 left-3 pr-3 text-sm font-semibold text-white">{category.name}</p>
+            </Link>
           ))}
-        </div>
-      </section>
-
-      <FlashSaleBanner />
-
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <div className="rounded-xl border bg-white p-4 text-center md:rounded-2xl md:p-5 dark:bg-slate-900">
-          <p className="text-2xl">🚚</p>
-          <p className="mt-2 text-sm font-semibold">Free Delivery</p>
-          <p className="text-xs text-slate-500">Within major cities</p>
-        </div>
-        <div className="rounded-xl border bg-white p-4 text-center md:rounded-2xl md:p-5 dark:bg-slate-900">
-          <p className="text-2xl">✅</p>
-          <p className="mt-2 text-sm font-semibold">100% Trusted</p>
-          <p className="text-xs text-slate-500">Certified smart home service team</p>
-        </div>
-        <div className="rounded-xl border bg-white p-4 text-center md:rounded-2xl md:p-5 dark:bg-slate-900">
-          <p className="text-2xl">🛡️</p>
-          <p className="mt-2 text-sm font-semibold">Up to 3 Years Warranty</p>
-          <p className="text-xs text-slate-500">On selected products</p>
-        </div>
-        <div className="rounded-xl border bg-white p-4 text-center md:rounded-2xl md:p-5 dark:bg-slate-900">
-          <p className="text-2xl">💳</p>
-          <p className="mt-2 text-sm font-semibold">Cards & Mobile Money</p>
-          <p className="text-xs text-slate-500">Fast and secure payments</p>
         </div>
       </section>
 
       <section>
         <div className="mb-4 flex items-end justify-between">
           <div>
-            <h2 className="text-2xl font-semibold">Featured Solutions</h2>
-            <p className="text-sm text-slate-500">Popular smart home packages tailored to your setup goals.</p>
+            <h2 className="text-2xl font-semibold">Trending Now — Products our customers love</h2>
+            <p className="text-sm text-slate-500">Hand-selected favourites with top ratings and fast turnaround.</p>
           </div>
-          <Link href="/products" className="text-sm font-semibold text-indigo-600">
-            View all
+          <Link href="/shop" className="text-sm font-semibold text-emerald-700">
+            View all products →
           </Link>
         </div>
-        <div className="grid grid-cols-2 gap-3 md:gap-4 lg:grid-cols-3">
-          {products.map((product) => (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {featured.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
         </div>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-3">
-        <article className="rounded-2xl bg-indigo-600 p-6 text-white">
-          <p className="text-xs uppercase tracking-wider text-indigo-200">Bundle Offer</p>
-          <h3 className="mt-2 text-xl font-bold">Home Security Setup Package</h3>
-          <p className="mt-1 text-sm text-indigo-100">Professional installation for camera, doorbell, and smart lock systems.</p>
-          <Button className="mt-4 bg-white text-indigo-700 hover:bg-indigo-50">Book Package</Button>
-        </article>
-        <article className="rounded-2xl bg-slate-900 p-6 text-white">
-          <p className="text-xs uppercase tracking-wider text-slate-300">Install Service</p>
-          <h3 className="mt-2 text-xl font-bold">Same-Day Setup</h3>
-          <p className="mt-1 text-sm text-slate-300">Book certified installers to configure your entire home.</p>
-          <Button className="mt-4">Book Now</Button>
-        </article>
-        <article className="rounded-2xl border bg-white p-6 dark:bg-slate-900">
-          <p className="text-xs uppercase tracking-wider text-slate-500">Newsletter</p>
-          <h3 className="mt-2 text-xl font-bold">Get weekly smart home service updates</h3>
-          <p className="mt-1 text-sm text-slate-500">Receive maintenance tips, automation ideas, and service offers.</p>
-          <div className="mt-4 flex gap-2">
-            <input
-              type="email"
-              placeholder="you@example.com"
-              className="min-w-0 flex-1 text-sm"
-            />
-            <Button>Join</Button>
-          </div>
-        </article>
+      <section>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">Just landed</p>
+        <h3 className="mt-2 text-2xl font-semibold">Fresh stock & restocks</h3>
+        <p className="mt-2 max-w-2xl text-sm text-slate-600">
+          Discover new arrivals — kitchen essentials, electronics, mannequins, dresses, and everyday items at great prices.
+        </p>
+        <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {freshStock.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
       </section>
-      <section className="rounded-2xl border bg-white p-6 dark:bg-slate-900">
-        <h3 className="text-xl font-semibold">Build Your Smart Home in 3 Steps</h3>
+
+      <section className="rounded-2xl border bg-white p-6">
+        <h3 className="text-2xl font-semibold">Built on quality, value, and trust</h3>
+        <p className="mt-2 text-sm text-slate-600">Every product is hand-selected and quality-checked before dispatch.</p>
         <div className="mt-4 grid gap-4 md:grid-cols-3">
-          <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800">
-            <p className="text-sm font-semibold">1. Pick your ecosystem</p>
-            <p className="text-sm text-slate-500">Alexa, Google, HomeKit, or Matter-ready.</p>
+          <div className="rounded-xl bg-slate-50 p-4">
+            <CheckCircle2 className="h-6 w-6 text-emerald-700" />
+            <p className="mt-3 text-sm font-semibold">Verified quality from source</p>
+            <p className="text-sm text-slate-500">Products sourced directly from factories and personally inspected.</p>
           </div>
-          <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800">
-            <p className="text-sm font-semibold">2. Choose compatible devices</p>
-            <p className="text-sm text-slate-500">Auto-filtered products for zero setup frustration.</p>
+          <div className="rounded-xl bg-slate-50 p-4">
+            <Headset className="h-6 w-6 text-emerald-700" />
+            <p className="mt-3 text-sm font-semibold">Real support, real people</p>
+            <p className="text-sm text-slate-500">Our team helps with product questions and order tracking.</p>
           </div>
-          <div className="rounded-xl bg-slate-50 p-4 dark:bg-slate-800">
-            <p className="text-sm font-semibold">3. Track and control</p>
-            <p className="text-sm text-slate-500">Monitor orders and devices from your account dashboard.</p>
+          <div className="rounded-xl bg-slate-50 p-4">
+            <Truck className="h-6 w-6 text-emerald-700" />
+            <p className="mt-3 text-sm font-semibold">Reliable nationwide delivery</p>
+            <p className="text-sm text-slate-500">Order from anywhere in Ghana with tracked delivery updates.</p>
           </div>
         </div>
       </section>
 
-      <section className="rounded-2xl bg-slate-900 p-8 text-white">
-        <p className="text-xs uppercase tracking-wider text-slate-300">Special Discounts</p>
-        <h3 className="mt-2 text-3xl font-extrabold">Where reliable service meets automation</h3>
-        <p className="mt-2 max-w-2xl text-slate-300">
-          Save on installation, diagnostics, and optimization services for your full smart home ecosystem.
+      <section className="rounded-2xl bg-emerald-700 p-8 text-white">
+        <h3 className="text-3xl font-bold">Premium products at unbeatable prices.</h3>
+        <p className="mt-2 max-w-2xl text-emerald-50">
+          Discover quality kitchen essentials, electronics, mannequins, dresses, and more — sourced directly and delivered to your door.
         </p>
         <div className="mt-5 flex gap-3">
-          <Button>View Services</Button>
-          <Button variant="outline" className="border-white text-white hover:bg-white hover:text-slate-900">
-            Learn More
-          </Button>
-        </div>
-      </section>
-
-      <section>
-        <div className="mb-3 flex items-end justify-between">
-          <h3 className="text-xl font-semibold">Explore our Service Guides</h3>
-          <Link href="/search" className="text-sm font-medium text-indigo-600">
-            Read all
+          <Link href="/shop"><Button className="bg-white text-emerald-700 hover:bg-emerald-50">Start shopping</Button></Link>
+          <Link href="/auth/register">
+            <Button variant="outline" className="border-white text-white hover:bg-white hover:text-emerald-700">
+              Create an account
+            </Button>
           </Link>
         </div>
-        <div className="grid gap-4 md:grid-cols-3">
-          <article className="rounded-2xl border bg-white p-4 dark:bg-slate-900">
-            <h4 className="font-semibold">How to build a secure smart home in 2026</h4>
-            <p className="mt-2 text-sm text-slate-500">A practical checklist for professional setup, alerts, and automation.</p>
+        <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-emerald-50">
+          <span className="rounded-full bg-white/20 px-3 py-1">Verified quality</span>
+          <span className="rounded-full bg-white/20 px-3 py-1">Nationwide delivery</span>
+          <span className="rounded-full bg-white/20 px-3 py-1">Accra, Ghana</span>
+        </div>
+      </section>
+      <NewsletterSection />
+      <section className="rounded-2xl border bg-white p-6">
+        <h3 className="text-xl font-semibold">Explore our sourcing updates</h3>
+        <div className="mt-4 grid gap-4 md:grid-cols-3">
+          <article className="rounded-xl bg-slate-50 p-4">
+            <h4 className="font-semibold">How to choose durable kitchen essentials</h4>
+            <p className="mt-1 text-sm text-slate-500">Simple buying checklist for quality and long-term use.</p>
           </article>
-          <article className="rounded-2xl border bg-white p-4 dark:bg-slate-900">
-            <h4 className="font-semibold">Matter vs HomeKit vs Alexa: Which service path is best</h4>
-            <p className="mt-2 text-sm text-slate-500">Compatibility guidance before booking installation and configuration.</p>
+          <article className="rounded-xl bg-slate-50 p-4">
+            <h4 className="font-semibold">What to check before buying mannequins</h4>
+            <p className="mt-1 text-sm text-slate-500">Size, finish, durability, and value tips for resellers.</p>
           </article>
-          <article className="rounded-2xl border bg-white p-4 dark:bg-slate-900">
-            <h4 className="font-semibold">Best service plans for renters and new homes</h4>
-            <p className="mt-2 text-sm text-slate-500">Starter, advanced, and premium service plan recommendations.</p>
+          <article className="rounded-xl bg-slate-50 p-4">
+            <h4 className="font-semibold">Best value electronics for everyday homes</h4>
+            <p className="mt-1 text-sm text-slate-500">Our top practical picks for reliable daily use.</p>
           </article>
         </div>
       </section>

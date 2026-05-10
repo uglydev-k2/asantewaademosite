@@ -50,11 +50,22 @@ export default async function AccountPage() {
           </span>
         ) : null}
       </div>
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-4">
+        <Link href="/account" className="rounded-xl border p-4">Profile</Link>
         <Link href="/account/orders" className="rounded-xl border p-4">Orders</Link>
-        <Link href="/account/wishlist" className="rounded-xl border p-4">Wishlist</Link>
-        <Link href="/account/devices" className="rounded-xl border p-4">My Devices</Link>
+        <Link href="/wishlist" className="rounded-xl border p-4">Wishlist</Link>
+        <Link href="/account/devices" className="rounded-xl border p-4">Addresses</Link>
       </div>
+      <section className="rounded-2xl border bg-white p-5">
+        <h2 className="text-lg font-semibold">Profile</h2>
+        <p className="mt-1 text-sm text-slate-500">Update your account details.</p>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <input placeholder="Full name" />
+          <input placeholder="Email address" />
+          <input placeholder="Phone number" />
+          <input placeholder="Password" type="password" />
+        </div>
+      </section>
       {isAdmin ? (
         <Link href="/admin" className="inline-block rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white">
           Open Admin Dashboard

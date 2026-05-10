@@ -1,9 +1,5 @@
-import { AuthCard } from "@/components/auth/auth-card";
+import { redirect } from "next/navigation";
 
 export default function SignInPage() {
-  return (
-    <div className="py-10">
-      <AuthCard mode="signin" />
-    </div>
-  );
+  redirect("/auth/login");
 }
