@@ -12,44 +12,45 @@ async function isAdminUser(userId: string) {
 }
 
 export async function requireAdminPageAccess() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseAnonKey) redirect("/auth/login");
+
   const cookieStore = cookies();
-  const supabaseAuth = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-        set() {},
-        remove() {}
+  const supabaseAuth = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      get(name: string) {
+        return cookieStore.get(name)?.value;
       }
     }
-  );
+  });
   const {
     data: { user }
   } = await supabaseAuth.auth.getUser();
 
-  if (!user) redirect("/signin");
+  if (!user) redirect("/auth/login?next=/admin");
   const isAdmin = await isAdminUser(user.id);
   if (!isAdmin) redirect("/account");
 }
 
 export async function requireAdminApiAccess() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return {
+      ok: false as const,
+      response: NextResponse.json({ error: "Supabase is not configured." }, { status: 500 })
+    };
+  }
+
   const cookieStore = cookies();
-  const supabaseAuth = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
-        },
-        set() {},
-        remove() {}
+  const supabaseAuth = createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      get(name: string) {
+        return cookieStore.get(name)?.value;
       }
     }
-  );
+  });
   const {
     data: { user }
   } = await supabaseAuth.auth.getUser();

@@ -19,9 +19,9 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     <div className="min-h-screen bg-slate-100 dark:bg-slate-950">
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-8 md:grid-cols-[220px_1fr]">
         <aside className="space-y-4 rounded-xl border bg-white p-4 shadow-sm dark:bg-slate-900">
-          <div className="rounded-lg bg-slate-900 p-3 text-white">
-            <p className="text-xs uppercase text-slate-300">installease</p>
-            <p className="text-sm font-semibold">Admin HQ</p>
+          <div className="rounded-lg bg-emerald-700 p-3 text-white">
+            <p className="text-xs uppercase text-emerald-100">Asantewaa Imports</p>
+            <p className="text-sm font-semibold">God Mode Admin</p>
           </div>
 
           <div className="space-y-1">
