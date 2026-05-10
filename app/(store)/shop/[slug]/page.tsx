@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { asantewaaProducts } from "@/lib/data/storefront";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { formatGHS } from "@/lib/utils";
+import { ProductActions } from "@/components/product/ProductActions";
+import { CartSection } from "@/components/cart/CartSection";
 
 export default function ProductDetailPage({ params }: { params: { slug: string } }) {
   const product = asantewaaProducts.find((item) => item.slug === params.slug);
@@ -26,12 +28,10 @@ export default function ProductDetailPage({ params }: { params: { slug: string }
           <p className="text-2xl font-bold text-emerald-700">{formatGHS(product.price)}</p>
           <p className="text-sm text-slate-600">{product.description}</p>
           <p className="text-sm font-medium">{product.stock > 0 ? `In stock (${product.stock})` : "Out of stock"}</p>
-          <div className="flex gap-3">
-            <button className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white">Add to Cart</button>
-            <button className="rounded-lg border px-4 py-2 text-sm font-semibold">Add to Wishlist</button>
-          </div>
+          <ProductActions product={product} />
         </article>
       </section>
+      <CartSection />
       <section>
         <h2 className="mb-4 text-xl font-semibold">You may also like</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

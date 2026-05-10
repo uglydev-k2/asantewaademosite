@@ -38,9 +38,10 @@ export function AuthCard({ mode }: { mode: Mode }) {
 
   async function onSubmit(values: SignInValues | SignUpValues) {
     setLoading(true);
-    const supabase = createBrowserSupabaseClient();
 
     try {
+      const supabase = createBrowserSupabaseClient();
+
       if (mode === "signup") {
         const payload = values as SignUpValues;
         const { error } = await supabase.auth.signUp({
@@ -76,13 +77,18 @@ export function AuthCard({ mode }: { mode: Mode }) {
   }
 
   async function oauth(provider: "google" | "apple") {
-    const supabase = createBrowserSupabaseClient();
-    const redirectTo = `${window.location.origin}/auth/callback?next=/account`;
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: { redirectTo }
-    });
-    if (error) toast.error(error.message);
+    try {
+      const supabase = createBrowserSupabaseClient();
+      const redirectTo = `${window.location.origin}/auth/callback?next=/account`;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo }
+      });
+      if (error) toast.error(error.message);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "OAuth sign-in failed.";
+      toast.error(message);
+    }
   }
 
   return (

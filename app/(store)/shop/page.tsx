@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { asantewaaProducts } from "@/lib/data/storefront";
 import { ProductCard } from "@/components/shop/ProductCard";
+import { CartSection } from "@/components/cart/CartSection";
 
 const PAGE_SIZE = 12;
 
@@ -49,6 +50,7 @@ export default function ShopPage({
             <Link href={`/shop?${category ? `category=${category}&` : ""}sort=price-asc`} className="rounded-full border px-3 py-1">Price Low→High</Link>
           </div>
         </div>
+        <CartSection />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {paged.map((product) => (
             <ProductCard key={product.id} product={product} />

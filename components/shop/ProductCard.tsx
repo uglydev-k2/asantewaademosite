@@ -9,29 +9,14 @@ import { formatGHS } from "@/lib/utils";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useWishlistStore } from "@/lib/store/wishlist-store";
 import { cn } from "@/lib/utils";
-import type { Product } from "@/lib/types/product";
+import { toCartProduct } from "@/lib/store/cart-product";
 
 export function ProductCard({ product }: { product: StoreProduct }) {
   const addItem = useCartStore((state) => state.addItem);
   const toggleWishlist = useWishlistStore((state) => state.toggleItem);
   const hasItem = useWishlistStore((state) => state.hasItem(product.id));
   const outOfStock = product.stock < 1;
-  const cartReadyProduct: Product = {
-    id: String(product.id),
-    name: product.name,
-    slug: product.slug,
-    description: product.description,
-    price: product.price,
-    images: product.images,
-    rating: product.rating,
-    reviewCount: product.reviews_count,
-    ecosystems: ["alexa"],
-    stock: product.stock,
-    brand: "Asantewaa Imports",
-    sku: `AI-${product.id}`,
-    setupDifficulty: "Beginner",
-    category: product.category_slug
-  };
+  const cartReadyProduct = toCartProduct(product);
 
   return (
     <article className={cn("group rounded-xl border bg-white p-2 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md", outOfStock && "opacity-80")}>
