@@ -76,28 +76,13 @@ export function AuthCard({ mode }: { mode: Mode }) {
     }
   }
 
-  async function oauth(provider: "google" | "apple") {
-    try {
-      const supabase = createBrowserSupabaseClient();
-      const redirectTo = `${window.location.origin}/auth/callback?next=/account`;
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: { redirectTo }
-      });
-      if (error) toast.error(error.message);
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "OAuth sign-in failed.";
-      toast.error(message);
-    }
-  }
-
   return (
     <div className="mx-auto w-full max-w-md rounded-2xl border bg-white p-6 shadow-lg dark:bg-slate-900">
       <h1 className="text-2xl font-bold">{mode === "signin" ? "Welcome back" : "Create your account"}</h1>
       <p className="mt-1 text-sm text-slate-500">
         {mode === "signin"
-          ? "Sign in to manage orders, wishlist, and smart devices."
-          : "Sign up to save preferences and unlock faster checkout."}
+          ? "Sign in with email to manage orders and your wishlist."
+          : "Sign up with email to save preferences and unlock faster checkout."}
       </p>
 
       <form className="mt-5 space-y-4" onSubmit={handleSubmit(onSubmit)}>
@@ -125,16 +110,6 @@ export function AuthCard({ mode }: { mode: Mode }) {
           {loading ? "Please wait..." : mode === "signin" ? "Sign In" : "Create Account"}
         </Button>
       </form>
-
-      <div className="my-4 h-px bg-slate-200 dark:bg-slate-700" />
-      <div className="space-y-2">
-        <Button variant="outline" className="w-full" onClick={() => oauth("google")}>
-          Continue with Google
-        </Button>
-        <Button variant="outline" className="w-full" onClick={() => oauth("apple")}>
-          Continue with Apple
-        </Button>
-      </div>
 
       <p className="mt-5 text-sm text-slate-500">
         {mode === "signin" ? "New to Asantewaa Imports?" : "Already have an account?"}{" "}

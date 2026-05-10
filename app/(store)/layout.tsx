@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { Heart, Home, Menu, Search, ShoppingBag, User } from "lucide-react";
+import { StoreHeaderAuth } from "@/components/store/store-header-auth";
 
 export default async function StoreLayout({ children }: { children: ReactNode }) {
   return (
@@ -26,9 +27,7 @@ export default async function StoreLayout({ children }: { children: ReactNode })
             <Link href="/wishlist" className="rounded-full p-2 text-slate-600 hover:bg-slate-100" aria-label="Wishlist">
               <Heart className="h-4 w-4" />
             </Link>
-            <Link href="/auth/login" className="rounded-full p-2 text-slate-600 hover:bg-slate-100" aria-label="Login">
-              <User className="h-4 w-4" />
-            </Link>
+            <StoreHeaderAuth />
             <Link href="/cart" className="rounded-full p-2 text-slate-600 hover:bg-slate-100" aria-label="Cart">
               <ShoppingBag className="h-4 w-4" />
             </Link>

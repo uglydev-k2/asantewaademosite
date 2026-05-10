@@ -2,58 +2,56 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { createServerSupabaseClient } from "@/lib/supabase/server";
 
-async function isAdminUser(userId: string) {
-  const supabase = createServerSupabaseClient();
-  const { data, error } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
-  if (error) throw error;
-  return data?.role === "admin";
-}
-
-export async function requireAdminPageAccess() {
+function createAuthServerClient() {
+  const cookieStore = cookies();
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!supabaseUrl || !supabaseAnonKey) redirect("/auth/login");
 
-  const cookieStore = cookies();
-  const supabaseAuth = createServerClient(supabaseUrl, supabaseAnonKey, {
+  if (!supabaseUrl || !supabaseAnonKey) {
+    return null;
+  }
+
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       get(name: string) {
         return cookieStore.get(name)?.value;
-      }
+      },
+      set() {},
+      remove() {}
     }
   });
+}
+
+export async function requireAdminPageAccess() {
+  const supabase = createAuthServerClient();
+  if (!supabase) redirect("/auth/login?next=/admin");
+
   const {
     data: { user }
-  } = await supabaseAuth.auth.getUser();
+  } = await supabase.auth.getUser();
 
   if (!user) redirect("/auth/login?next=/admin");
-  const isAdmin = await isAdminUser(user.id);
-  if (!isAdmin) redirect("/account");
+
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+
+  if (!profile || profile.role !== "admin") {
+    redirect("/");
+  }
 }
 
 export async function requireAdminApiAccess() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  if (!supabaseUrl || !supabaseAnonKey) {
+  const supabase = createAuthServerClient();
+  if (!supabase) {
     return {
       ok: false as const,
       response: NextResponse.json({ error: "Supabase is not configured." }, { status: 500 })
     };
   }
 
-  const cookieStore = cookies();
-  const supabaseAuth = createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      get(name: string) {
-        return cookieStore.get(name)?.value;
-      }
-    }
-  });
   const {
     data: { user }
-  } = await supabaseAuth.auth.getUser();
+  } = await supabase.auth.getUser();
 
   if (!user) {
     return {
@@ -62,8 +60,9 @@ export async function requireAdminApiAccess() {
     };
   }
 
-  const isAdmin = await isAdminUser(user.id);
-  if (!isAdmin) {
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
+
+  if (!profile || profile.role !== "admin") {
     return {
       ok: false as const,
       response: NextResponse.json({ error: "Forbidden. Admin access required." }, { status: 403 })
