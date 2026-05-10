@@ -22,20 +22,25 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const cookieStore = cookies();
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        get(name: string) {
-          return cookieStore.get(name)?.value;
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  let session = null;
+
+  if (supabaseUrl && supabaseAnonKey) {
+    try {
+      const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value;
+          }
         }
-      }
+      });
+      const result = await supabase.auth.getSession();
+      session = result.data.session;
+    } catch {
+      session = null;
     }
-  );
-  const {
-    data: { session }
-  } = await supabase.auth.getSession();
+  }
 
   return (
     <html lang="en">
