@@ -7,16 +7,16 @@ import type { User } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import { SignOutButton } from "@/components/store/signout-button";
 
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
 export function AuthControls() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseAnonKey) return;
+    const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);
+
     supabase.auth.getSession().then(({ data }) => setUser(data.session?.user ?? null));
     const {
       data: { subscription }

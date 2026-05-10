@@ -52,7 +52,7 @@ export function AuthCard({ mode }: { mode: Mode }) {
         });
         if (error) throw error;
         toast.success("Account created. Check your email to confirm.");
-        router.push("/signin");
+        router.push("/auth/login");
         router.refresh();
         return;
       }
@@ -77,7 +77,7 @@ export function AuthCard({ mode }: { mode: Mode }) {
 
   async function oauth(provider: "google" | "apple") {
     const supabase = createBrowserSupabaseClient();
-    const redirectTo = `${window.location.origin}/account`;
+    const redirectTo = `${window.location.origin}/auth/callback?next=/account`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: { redirectTo }
@@ -131,8 +131,8 @@ export function AuthCard({ mode }: { mode: Mode }) {
       </div>
 
       <p className="mt-5 text-sm text-slate-500">
-        {mode === "signin" ? "New to installease?" : "Already have an account?"}{" "}
-        <Link href={mode === "signin" ? "/signup" : "/signin"} className="font-semibold text-indigo-600">
+        {mode === "signin" ? "New to Asantewaa Imports?" : "Already have an account?"}{" "}
+        <Link href={mode === "signin" ? "/auth/register" : "/auth/login"} className="font-semibold text-emerald-700">
           {mode === "signin" ? "Create account" : "Sign in"}
         </Link>
       </p>

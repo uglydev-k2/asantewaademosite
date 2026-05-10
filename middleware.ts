@@ -31,7 +31,23 @@ export async function middleware(request: NextRequest) {
       }
     });
 
-    await supabase.auth.getUser();
+    const {
+      data: { user }
+    } = await supabase.auth.getUser();
+
+    const pathname = request.nextUrl.pathname;
+    const authRequired =
+      pathname.startsWith("/account") ||
+      pathname.startsWith("/wishlist") ||
+      pathname.startsWith("/checkout") ||
+      pathname.startsWith("/admin");
+
+    if (authRequired && !user) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/auth/login";
+      url.searchParams.set("next", pathname);
+      return NextResponse.redirect(url);
+    }
   } catch {
     // Never block page rendering if auth refresh fails in middleware.
     return response;

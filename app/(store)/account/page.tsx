@@ -1,39 +1,42 @@
 import Link from "next/link";
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 async function getAccountRole() {
   try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !supabaseAnonKey) return { role: null as string | null, isAuthenticated: false };
+
     const cookieStore = cookies();
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value;
-          },
-          set() {},
-          remove() {}
+    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        get(name: string) {
+          return cookieStore.get(name)?.value;
         }
       }
-    );
+    });
     const {
       data: { user }
     } = await supabase.auth.getUser();
 
-    if (!user) return null;
+    if (!user) return { role: null as string | null, isAuthenticated: false };
     const { data } = await supabase.from("profiles").select("role").eq("id", user.id).maybeSingle();
-    return data?.role ?? "customer";
+    return { role: data?.role ?? "customer", isAuthenticated: true };
   } catch {
-    return null;
+    return { role: null as string | null, isAuthenticated: false };
   }
 }
 
 export default async function AccountPage() {
-  const role = await getAccountRole();
+  const auth = await getAccountRole();
+  if (!auth.isAuthenticated) {
+    redirect("/auth/login?next=/account");
+  }
+  const role = auth.role;
   const isAdmin = role === "admin";
 
   return (
