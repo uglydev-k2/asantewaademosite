@@ -5,9 +5,11 @@ import { HeroCarousel } from "@/components/home/HeroCarousel";
 import { NewsletterSection } from "@/components/home/NewsletterSection";
 import { ProductCard } from "@/components/shop/ProductCard";
 import { asantewaaProducts } from "@/lib/data/storefront";
+import { getServerAuthUser } from "@/lib/supabase/auth-server";
 import { Button } from "@/components/ui/button";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const user = await getServerAuthUser();
   const categories = [
     { name: "Top sellers — Kitchen Essentials", slug: "kitchen-essentials", image: "https://images.unsplash.com/photo-1556911220-bff31c812dba?q=80&w=1200", badge: "Top sellers" },
     { name: "Premium picks — Electronics", slug: "electronics", image: "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1200", badge: "Premium picks" },
@@ -96,13 +98,23 @@ export default function HomePage() {
         <p className="mt-2 max-w-2xl text-emerald-50">
           Discover quality kitchen essentials, electronics, mannequins, dresses, and more — sourced directly and delivered to your door.
         </p>
-        <div className="mt-5 flex gap-3">
-          <Link href="/shop"><Button className="bg-white text-emerald-700 hover:bg-emerald-50">Start shopping</Button></Link>
-          <Link href="/auth/register">
-            <Button variant="outline" className="border-white text-white hover:bg-white hover:text-emerald-700">
-              Create an account
-            </Button>
+        <div className="mt-5 flex flex-wrap gap-3">
+          <Link href="/shop">
+            <Button className="bg-white text-emerald-700 hover:bg-emerald-50">Start shopping</Button>
           </Link>
+          {user ? (
+            <Link href="/account">
+              <Button variant="outline" className="border-white text-white hover:bg-white hover:text-emerald-700">
+                My account
+              </Button>
+            </Link>
+          ) : (
+            <Link href="/auth/register">
+              <Button variant="outline" className="border-white text-white hover:bg-white hover:text-emerald-700">
+                Create an account
+              </Button>
+            </Link>
+          )}
         </div>
         <div className="mt-4 flex flex-wrap gap-2 text-xs font-semibold text-emerald-50">
           <span className="rounded-full bg-white/20 px-3 py-1">Verified quality</span>

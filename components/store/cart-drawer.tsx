@@ -6,6 +6,7 @@ import { Minus, Plus, Trash2, X } from "lucide-react";
 import { CartLineThumb } from "@/components/checkout/cart-line-thumb";
 import { useCartStore } from "@/lib/store/cart-store";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { CURRENCY_SYMBOL } from "@/lib/checkout/constants";
 import { formatVariantLabel, lineImageUrl, lineUnitPrice } from "@/lib/checkout/cart-line";
 
@@ -34,24 +35,30 @@ export function CartDrawer() {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
+            <div className="flex-1 space-y-0 overflow-y-auto px-5 py-4">
               {items.length === 0 ? (
                 <p className="text-center text-sm text-[#6B7280]">Your cart is empty.</p>
               ) : (
-                items.map((item) => {
+                items.map((item, idx) => {
                   const img = lineImageUrl(item.product);
                   const variant = formatVariantLabel(item.product);
                   const unit = lineUnitPrice(item.product);
                   return (
-                    <div key={item.product.id} className="flex gap-3 rounded-xl border border-[#E5E7EB] p-3">
+                    <div
+                      key={item.product.id}
+                      className={cn("flex gap-3 py-4", idx > 0 && "border-t border-[#E5E7EB]")}
+                    >
                       <CartLineThumb imageUrl={img} name={item.product.name} quantity={item.quantity} />
                       <div className="min-w-0 flex-1">
-                        <p className="truncate font-medium text-[#0F172A]">{item.product.name}</p>
+                        <p className="truncate font-medium text-[#0F172A]" style={{ fontWeight: 500 }}>
+                          {item.product.name}
+                        </p>
                         {variant ? <p className="mt-0.5 text-xs text-[#6B7280]">{variant}</p> : null}
                         <div className="mt-3 flex items-center gap-2">
                           <button
                             type="button"
-                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E5E7EB] text-[#374151] hover:bg-[#F9FAFB]"
+                            disabled={item.quantity <= 1}
+                            className="flex h-8 w-8 items-center justify-center rounded-lg border border-[#E5E7EB] text-[#374151] hover:bg-[#F9FAFB] disabled:cursor-not-allowed disabled:opacity-35"
                             aria-label="Decrease quantity"
                             onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
                           >
@@ -95,10 +102,15 @@ export function CartDrawer() {
               </div>
               <div className="flex flex-col gap-2">
                 <Link href="/checkout" onClick={() => setOpen(false)}>
-                  <Button className="h-12 w-full rounded-full bg-[#0F172A] font-semibold text-white">Proceed to Checkout</Button>
+                  <Button className="h-12 w-full rounded-full bg-[#0F172A] font-semibold text-white hover:opacity-90">
+                    Proceed to Checkout
+                  </Button>
                 </Link>
                 <Link href="/cart" onClick={() => setOpen(false)}>
-                  <Button variant="outline" className="h-12 w-full rounded-full border-[#0F172A] font-semibold text-[#0F172A]">
+                  <Button
+                    variant="outline"
+                    className="h-12 w-full rounded-full border-[#0F172A] bg-transparent font-semibold text-[#0F172A] hover:bg-[#FAFAFA]"
+                  >
                     View Cart
                   </Button>
                 </Link>

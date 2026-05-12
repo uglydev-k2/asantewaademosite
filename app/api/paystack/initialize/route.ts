@@ -18,6 +18,7 @@ const bodySchema = z.object({
   cartItems: z.array(cartItemSchema).min(1),
   shippingAddress: z.record(z.unknown()),
   userId: z.string().uuid().optional(),
+  saveCard: z.boolean().optional(),
   subtotal: z.number().nonnegative(),
   shippingCost: z.number().nonnegative(),
   tax: z.number().nonnegative(),
@@ -58,6 +59,7 @@ export async function POST(request: NextRequest) {
       total: String(body.total)
     };
     if (body.userId) metadata.user_id = body.userId;
+    if (body.saveCard) metadata.save_card = "true";
 
     const response = await fetch("https://api.paystack.co/transaction/initialize", {
       method: "POST",

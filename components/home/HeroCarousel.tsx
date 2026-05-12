@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useInitialSession } from "@/components/providers/auth-session-provider";
 import { Button } from "@/components/ui/button";
 
 const slides = [
@@ -13,6 +14,8 @@ const slides = [
 ];
 
 export function HeroCarousel() {
+  const session = useInitialSession();
+  const signedIn = Boolean(session?.user);
   const [activeIndex, setActiveIndex] = useState(0);
   const currentSlide = useMemo(() => slides[activeIndex], [activeIndex]);
 
@@ -38,11 +41,19 @@ export function HeroCarousel() {
             <Link href="/shop">
               <Button className="bg-emerald-700 hover:bg-emerald-800">Shop Now</Button>
             </Link>
-            <Link href="/about">
-              <Button variant="outline" className="border-white text-white hover:bg-white hover:text-slate-900">
-                Our Story
-              </Button>
-            </Link>
+            {signedIn ? (
+              <Link href="/account">
+                <Button variant="outline" className="border-white text-white hover:bg-white hover:text-slate-900">
+                  My account
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/auth/register">
+                <Button variant="outline" className="border-white text-white hover:bg-white hover:text-slate-900">
+                  Create account
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
       </div>

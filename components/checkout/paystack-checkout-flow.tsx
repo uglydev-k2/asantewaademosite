@@ -1,20 +1,44 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import Link from "next/link";
 import PaystackPop from "@paystack/inline-js";
 import { Building2, CreditCard, Hash, Loader2, Smartphone } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { CartLineThumb } from "@/components/checkout/cart-line-thumb";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { CURRENCY_SYMBOL, DELIVERY_OPTIONS, estimateDeliveryRange } from "@/lib/checkout/constants";
-import { lineImageUrl, lineUnitPrice } from "@/lib/checkout/cart-line";
+import { formatVariantLabel, lineImageUrl, lineUnitPrice } from "@/lib/checkout/cart-line";
 import { useCartStore, type CartItem } from "@/lib/store/cart-store";
 import type { DeliveryFormValues } from "@/lib/checkout/delivery-schema";
 
+function AcceptedCardBrands() {
+  return (
+    <div className="flex flex-wrap items-center gap-3" aria-label="Accepted cards">
+      <svg width="40" height="26" viewBox="0 0 40 26" className="rounded border border-[#E5E7EB] bg-white" aria-hidden>
+        <rect width="40" height="26" rx="3" fill="#1A1F71" />
+        <text x="8" y="17" fill="white" fontSize="9" fontWeight="bold" fontFamily="system-ui,sans-serif">
+          VISA
+        </text>
+      </svg>
+      <svg width="40" height="26" viewBox="0 0 40 26" className="rounded border border-[#E5E7EB] bg-white" aria-hidden>
+        <circle cx="15" cy="13" r="8" fill="#EB001B" />
+        <circle cx="25" cy="13" r="8" fill="#F79E1B" />
+        <path d="M20 7a8 8 0 000 12 8 8 0 000-12z" fill="#FF5F00" />
+      </svg>
+      <svg width="40" height="26" viewBox="0 0 40 26" className="rounded border border-[#E5E7EB] bg-[#016FD0]" aria-hidden>
+        <text x="4" y="17" fill="white" fontSize="7" fontWeight="bold" fontFamily="system-ui,sans-serif">
+          AMEX
+        </text>
+      </svg>
+    </div>
+  );
+}
+
 function PaymentMethodCards() {
   const cardClass =
-    "flex flex-col gap-3 rounded-xl border border-[#E5E7EB] bg-white p-4 text-left shadow-sm transition hover:border-[#CBD5E1]";
+    "flex flex-col gap-3 rounded-2xl border border-[#E5E7EB] bg-white p-4 text-left shadow-sm transition hover:border-[#CBD5E1]";
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
       <div className={cardClass}>
@@ -97,10 +121,12 @@ export function PaystackCheckoutFlow({
   const router = useRouter();
   const clearCart = useCartStore((s) => s.clearCart);
   const placedRef = useRef(false);
+  const payingRef = useRef(false);
+  const [saveCard, setSaveCard] = useState(false);
 
   const openPaystack = async () => {
-    if (placedRef.current) return;
-
+    if (placedRef.current || payingRef.current) return;
+    payingRef.current = true;
     setPlacing(true);
     try {
       const initRes = await fetch("/api/paystack/initialize", {
@@ -112,6 +138,7 @@ export function PaystackCheckoutFlow({
           cartItems: cartPayload.cartItems,
           shippingAddress: cartPayload.shippingAddress,
           userId,
+          saveCard: Boolean(userId && saveCard),
           subtotal,
           shippingCost: shippingAmount,
           tax,
@@ -161,42 +188,53 @@ export function PaystackCheckoutFlow({
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Payment setup failed.");
     } finally {
+      payingRef.current = false;
       setPlacing(false);
     }
   };
 
   return (
     <>
-      <div
-        className={cn(
-          "rounded-xl border border-[#E5E7EB] bg-white p-6 md:p-8",
-          step === 3 &&
-            "pointer-events-none fixed left-0 top-0 z-0 h-[460px] w-[min(100%,480px)] max-w-[480px] -translate-x-[120vw] opacity-0"
-        )}
-        aria-hidden={step === 3}
-      >
-        <div>
-          <h2 className="text-xl font-bold text-[#0F172A]">Payment</h2>
-          <p className="mt-1 text-sm text-[#6B7280]">
-            Choose how you&apos;d like to pay. You&apos;ll complete payment securely in the Paystack window.
-          </p>
+      {step === 2 ? (
+        <div className="rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm md:p-8">
+          <h2 className="text-xl font-bold tracking-tight text-[#0F172A]">Payment details</h2>
+          <p className="mt-1 text-sm text-[#6B7280]">All transactions are encrypted and secure.</p>
+
+          <div className="mt-6">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[#6B7280]">Accepted on Paystack</p>
+            <AcceptedCardBrands />
+          </div>
+
+          <div className="mt-8">
+            <PaymentMethodCards />
+          </div>
+
+          {userId ? (
+            <label className="mt-8 flex cursor-pointer items-start gap-3 text-sm text-[#374151]">
+              <input
+                type="checkbox"
+                checked={saveCard}
+                onChange={(e) => setSaveCard(e.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border-[#E5E7EB] text-[#0F172A] focus:ring-[#0F172A]"
+              />
+              <span>Save card for future purchases</span>
+            </label>
+          ) : null}
+
+          <div className="mt-8 flex flex-col gap-4 border-t border-[#E5E7EB] pt-6 sm:flex-row sm:items-center sm:justify-between">
+            <button type="button" className="text-sm font-semibold text-[#0F172A] underline-offset-2 hover:underline" onClick={() => setStep(1)}>
+              ← Back to Delivery
+            </button>
+            <Button type="button" className="h-11 rounded-full bg-[#0F172A] px-8 font-semibold text-white" onClick={() => setStep(3)}>
+              Review Order →
+            </Button>
+          </div>
         </div>
-        <div className="mt-6">
-          <PaymentMethodCards />
-        </div>
-        <div className="mt-8 flex flex-col gap-4 border-t border-[#E5E7EB] pt-6 sm:flex-row sm:items-center sm:justify-between">
-          <button type="button" className="text-sm font-semibold text-[#0F172A] underline-offset-2 hover:underline" onClick={() => setStep(1)}>
-            ← Back to Delivery
-          </button>
-          <Button type="button" className="rounded-full bg-[#0F172A] px-6" onClick={() => setStep(3)}>
-            Review Order →
-          </Button>
-        </div>
-      </div>
+      ) : null}
 
       {step === 3 ? (
-        <div className="space-y-8 rounded-xl border border-[#E5E7EB] bg-white p-6 md:p-8">
-          <h2 className="text-xl font-bold text-[#0F172A]">Review &amp; pay</h2>
+        <div className="space-y-8 rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm md:p-8">
+          <h2 className="text-xl font-bold tracking-tight text-[#0F172A]">Review &amp; place order</h2>
 
           <div className="space-y-6 text-sm">
             <div>
@@ -239,25 +277,26 @@ export function PaystackCheckoutFlow({
 
             <div>
               <p className="mb-3 text-xs font-bold uppercase tracking-wide text-[#6B7280]">Items</p>
-              <ul className="space-y-3">
-                {items.map(({ product, quantity }) => (
-                  <li key={product.id} className="flex gap-3">
-                    <div className="relative h-[60px] w-[60px] shrink-0 overflow-hidden rounded-lg bg-[#F3F4F6]">
-                      {lineImageUrl(product) ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={lineImageUrl(product)} alt="" className="h-full w-full object-cover" />
-                      ) : null}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate font-medium">{product.name}</p>
-                      <p className="text-xs text-[#6B7280]">Qty {quantity}</p>
-                    </div>
-                    <p className="font-semibold">
-                      {CURRENCY_SYMBOL}
-                      {(lineUnitPrice(product) * quantity).toFixed(2)}
-                    </p>
-                  </li>
-                ))}
+              <ul className="space-y-4">
+                {items.map(({ product, quantity }) => {
+                  const img = lineImageUrl(product);
+                  const variant = formatVariantLabel(product);
+                  return (
+                    <li key={product.id} className="flex gap-3">
+                      <CartLineThumb imageUrl={img} name={product.name} quantity={quantity} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium text-[#0F172A]" style={{ fontWeight: 500 }}>
+                          {product.name}
+                        </p>
+                        {variant ? <p className="mt-0.5 text-xs text-[#6B7280]">{variant}</p> : null}
+                      </div>
+                      <p className="shrink-0 font-semibold text-[#0F172A]">
+                        {CURRENCY_SYMBOL}
+                        {(lineUnitPrice(product) * quantity).toFixed(2)}
+                      </p>
+                    </li>
+                  );
+                })}
               </ul>
             </div>
 
@@ -303,24 +342,32 @@ export function PaystackCheckoutFlow({
           </div>
 
           <p className="text-xs leading-relaxed text-[#6B7280]">
-            By paying you agree to our Terms of Service and Privacy Policy.
+            By placing your order you agree to our{" "}
+            <Link href="/terms" className="font-medium text-[#0F172A] underline-offset-2 hover:underline">
+              Terms of Service
+            </Link>{" "}
+            and{" "}
+            <Link href="/privacy" className="font-medium text-[#0F172A] underline-offset-2 hover:underline">
+              Privacy Policy
+            </Link>
+            .
           </p>
 
           <button
             type="button"
             disabled={placing || placedRef.current}
             onClick={() => void openPaystack()}
-            className="flex h-14 w-full flex-col items-center justify-center gap-1 rounded-full bg-[#16A34A] text-base font-bold text-white transition hover:bg-[#15803d] disabled:opacity-60"
+            className="flex h-14 w-full flex-col items-center justify-center gap-1 rounded-full bg-[#15803d] text-base font-bold text-white transition hover:bg-[#166534] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {placing ? (
               <>
                 <Loader2 className="h-5 w-5 animate-spin" />
-                <span>Opening Paystack…</span>
+                <span>Processing…</span>
               </>
             ) : (
               <>
                 <span>
-                  Pay {CURRENCY_SYMBOL}
+                  Place order — {CURRENCY_SYMBOL}
                   {total.toFixed(2)}
                 </span>
                 <span className="text-xs font-normal opacity-90">Card · Mobile Money · Bank · USSD</span>

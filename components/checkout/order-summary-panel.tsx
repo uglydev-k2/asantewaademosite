@@ -22,6 +22,8 @@ type OrderSummaryPanelProps = {
   tax: number;
   discount: number;
   total: number;
+  /** On step 1, shipping row shows “Calculated at next step”; amount appears from step 2 onward. */
+  checkoutStep?: 1 | 2 | 3;
   promo: PromoState;
   promoDraft: string;
   setPromoDraft: (v: string) => void;
@@ -41,6 +43,7 @@ export function OrderSummaryPanel({
   tax,
   discount,
   total,
+  checkoutStep = 3,
   promo,
   promoDraft,
   setPromoDraft,
@@ -50,6 +53,8 @@ export function OrderSummaryPanel({
   setPromoExpanded,
   className
 }: OrderSummaryPanelProps) {
+  const showShippingAmount = checkoutStep !== 1;
+
   return (
     <div className={cn("rounded-xl border bg-[#FFFFFF] p-6 shadow-sm", className)} style={{ borderColor: "#E5E7EB" }}>
       <div className="mb-6 flex items-center justify-between gap-2">
@@ -98,7 +103,9 @@ export function OrderSummaryPanel({
         <div className="flex justify-between text-[#374151]">
           <span>Shipping</span>
           <span className="text-right font-medium">
-            {shippingAmount > 0 ? (
+            {!showShippingAmount ? (
+              <span className="text-[#6B7280]">Calculated at next step</span>
+            ) : shippingAmount > 0 ? (
               <>
                 {CURRENCY_SYMBOL}
                 {shippingAmount.toFixed(2)}
@@ -170,7 +177,7 @@ export function OrderSummaryPanel({
                   value={promoDraft}
                   onChange={(e) => setPromoDraft(e.target.value)}
                   placeholder="Enter code"
-                  className="min-w-0 flex-1 text-sm"
+                  className="min-w-0 flex-1 rounded-xl border border-[#E5E7EB] bg-white px-3 py-2.5 text-sm text-[#0F172A] outline-none focus:border-[#0F172A] focus:ring-2 focus:ring-[#0F172A]/15"
                 />
                 <button
                   type="button"
@@ -186,6 +193,10 @@ export function OrderSummaryPanel({
           </div>
         )}
       </div>
+
+      {!showShippingAmount ? (
+        <p className="mt-4 text-xs text-[#6B7280]">Total includes estimated shipping from your selected delivery option.</p>
+      ) : null}
 
       <div className="mt-8 flex flex-wrap items-center gap-4 border-t border-[#E5E7EB] pt-6 text-xs text-[#6B7280]">
         <span className="inline-flex items-center gap-1.5">
@@ -204,7 +215,7 @@ export function OrderSummaryPanel({
 export function MobileOrderSummaryAccordion(props: OrderSummaryPanelProps) {
   const [open, setOpen] = useState(true);
   return (
-    <div className="mb-6 md:hidden">
+    <div className="mb-6 lg:hidden">
       <button
         type="button"
         className="flex w-full items-center justify-between rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-left text-sm font-semibold text-[#0F172A]"

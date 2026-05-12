@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Check } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { CheckoutStepIndicator } from "@/components/checkout/checkout-step-indicator";
 import { PaystackCheckoutFlow } from "@/components/checkout/paystack-checkout-flow";
 import { MobileOrderSummaryAccordion, OrderSummaryPanel, type PromoState } from "@/components/checkout/order-summary-panel";
 import { useInitialSession } from "@/components/providers/auth-session-provider";
@@ -21,47 +22,12 @@ import {
 } from "@/lib/checkout/constants";
 import { buildShippingAddress, deliveryStepSchema, type DeliveryFormValues } from "@/lib/checkout/delivery-schema";
 import { formatVariantLabel, lineImageUrl, lineUnitPrice } from "@/lib/checkout/cart-line";
-import { useCartStore, type CartItem } from "@/lib/store/cart-store";
+import { useCartStore } from "@/lib/store/cart-store";
 
 const paystackConfigured = Boolean(process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY);
 
-function StepIndicator({ step }: { step: 1 | 2 | 3 }) {
-  const steps = [
-    { n: 1, label: "Delivery" },
-    { n: 2, label: "Payment" },
-    { n: 3, label: "Review" }
-  ];
-  return (
-    <div className="mb-10">
-      <div className="flex items-center justify-between gap-2">
-        {steps.map((s, idx) => {
-          const done = step > s.n;
-          const current = step === s.n;
-          return (
-            <div key={s.n} className="flex flex-1 items-center">
-              <div className="flex flex-col items-center gap-2">
-                <div
-                  className={cn(
-                    "flex h-10 w-10 items-center justify-center rounded-full border-2 text-sm font-bold transition",
-                    done && "border-[#16A34A] bg-[#16A34A] text-white",
-                    current && !done && "border-[#0F172A] bg-[#0F172A] text-white",
-                    !done && !current && "border-[#E5E7EB] bg-white text-[#9CA3AF]"
-                  )}
-                >
-                  {done ? <Check className="h-5 w-5" /> : s.n}
-                </div>
-                <span className="hidden text-xs font-semibold text-[#6B7280] sm:block">{s.label}</span>
-              </div>
-              {idx < steps.length - 1 ? (
-                <div className="mx-1 h-0.5 flex-1 rounded-full" style={{ background: step > s.n ? "#16A34A" : "#E5E7EB" }} />
-              ) : null}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+const checkoutFieldClass =
+  "mt-2 w-full rounded-xl border border-[#E5E7EB] bg-white px-4 py-3 text-sm text-[#0F172A] outline-none transition placeholder:text-[#9CA3AF] focus:border-[#0F172A] focus:ring-2 focus:ring-[#0F172A]/15";
 
 export function CheckoutPageClient() {
   const session = useInitialSession();
@@ -92,6 +58,8 @@ export function CheckoutPageClient() {
 
   const { register, handleSubmit, watch, formState: { errors } } = deliveryForm;
   const deliveryMethod = watch("deliveryMethod") as DeliveryMethodId;
+  const deliveryFields = watch();
+  const deliveryStepValid = deliveryStepSchema.safeParse(deliveryFields).success;
 
   const subtotal = useMemo(
     () => items.reduce((sum, { product, quantity }) => sum + lineUnitPrice(product) * quantity, 0),
@@ -112,6 +80,7 @@ export function CheckoutPageClient() {
     tax,
     discount,
     total,
+    checkoutStep: step,
     promo,
     promoDraft,
     setPromoDraft,
@@ -148,7 +117,7 @@ export function CheckoutPageClient() {
   });
 
   const phoneE164 = `${phonePrefix.replace(/\s/g, "")}${watch("phoneLocal").replace(/\s/g, "")}`;
-  const deliveryValues = deliveryForm.watch();
+  const deliveryValues = deliveryFields;
 
   const cartPayload = useMemo(() => {
     const vals = deliveryValues;
@@ -176,7 +145,7 @@ export function CheckoutPageClient() {
     return (
       <div className="mx-auto max-w-lg rounded-xl border border-[#E5E7EB] bg-white p-10 text-center">
         <p className="text-lg font-semibold text-[#0F172A]">Your cart is empty</p>
-        <Link href="/products" className="mt-4 inline-block rounded-full bg-[#0F172A] px-6 py-2 text-sm font-semibold text-white">
+        <Link href="/shop" className="mt-4 inline-block rounded-full bg-[#0F172A] px-6 py-2 text-sm font-semibold text-white">
           Continue shopping
         </Link>
       </div>
@@ -187,39 +156,39 @@ export function CheckoutPageClient() {
 
   return (
     <div className="min-h-[80vh]" style={{ background: "#FAFAFA" }}>
-      <div className="mx-auto max-w-6xl px-4 py-8">
-        <h1 className="mb-2 text-2xl font-bold text-[#0F172A] md:text-3xl">Checkout</h1>
+      <div className="mx-auto max-w-[1280px] px-4 py-8 lg:px-8 lg:py-10">
+        <h1 className="mb-2 text-2xl font-bold tracking-tight text-[#0F172A] md:text-3xl">Checkout</h1>
         <p className="mb-8 text-sm text-[#6B7280]">Complete your order in three quick steps.</p>
 
         <MobileOrderSummaryAccordion {...summaryProps} />
 
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.5fr)_minmax(280px,1fr)]">
-          <div className="space-y-8">
-            <StepIndicator step={step} />
+        <div className="grid gap-8 lg:grid-cols-[3fr_2fr] lg:items-start lg:gap-10">
+          <div className="min-w-0 space-y-8">
+            <CheckoutStepIndicator step={step} />
 
             {step === 1 ? (
-              <form onSubmit={onDeliveryContinue} className="space-y-8 rounded-xl border border-[#E5E7EB] bg-white p-6 md:p-8">
+              <form onSubmit={onDeliveryContinue} className="space-y-8 rounded-2xl border border-[#E5E7EB] bg-white p-6 shadow-sm md:p-8">
                 <section className="space-y-4">
                   <p className="text-xs font-bold uppercase tracking-wide text-[#6B7280]">Contact</p>
                   <div>
                     <label className="text-sm font-medium text-[#374151]">Email address</label>
-                    <input type="email" {...register("email")} className="mt-2 w-full text-sm" />
+                    <input type="email" {...register("email")} className={checkoutFieldClass} />
                     {errors.email ? <p className="mt-1 text-xs text-[#DC2626]">{errors.email.message}</p> : null}
                   </div>
                   <div>
                     <label className="text-sm font-medium text-[#374151]">Phone number</label>
-                    <div className="mt-2 flex gap-2">
+                    <div className="mt-2 flex gap-3">
                       <select
                         value={phonePrefix}
                         onChange={(e) => setPhonePrefix(e.target.value)}
-                        className="w-28 shrink-0 text-sm"
+                        className={cn(checkoutFieldClass, "mt-0 w-28 shrink-0")}
                       >
                         <option value="+233">+233</option>
                       </select>
                       <input
                         {...register("phoneLocal")}
                         placeholder="24 000 0000"
-                        className="min-w-0 flex-1 text-sm"
+                        className={cn(checkoutFieldClass, "mt-0 min-w-0 flex-1")}
                       />
                     </div>
                     {errors.phoneLocal ? <p className="mt-1 text-xs text-[#DC2626]">{errors.phoneLocal.message}</p> : null}
@@ -230,27 +199,27 @@ export function CheckoutPageClient() {
                   <p className="text-xs font-bold uppercase tracking-wide text-[#6B7280]">Shipping address</p>
                   <div>
                     <label className="text-sm font-medium text-[#374151]">Full name</label>
-                    <input {...register("fullName")} className="mt-2 w-full text-sm" />
+                    <input {...register("fullName")} className={checkoutFieldClass} />
                     {errors.fullName ? <p className="mt-1 text-xs text-[#DC2626]">{errors.fullName.message}</p> : null}
                   </div>
                   <div>
                     <label className="text-sm font-medium text-[#374151]">Address line 1</label>
-                    <input {...register("line1")} className="mt-2 w-full text-sm" />
+                    <input {...register("line1")} className={checkoutFieldClass} />
                     {errors.line1 ? <p className="mt-1 text-xs text-[#DC2626]">{errors.line1.message}</p> : null}
                   </div>
                   <div>
                     <label className="text-sm font-medium text-[#374151]">Address line 2 (optional)</label>
-                    <input {...register("line2")} placeholder="Apartment, suite, etc." className="mt-2 w-full text-sm" />
+                    <input {...register("line2")} placeholder="Apartment, suite, etc." className={checkoutFieldClass} />
                   </div>
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                       <label className="text-sm font-medium text-[#374151]">City</label>
-                      <input {...register("city")} className="mt-2 w-full text-sm" />
+                      <input {...register("city")} className={checkoutFieldClass} />
                       {errors.city ? <p className="mt-1 text-xs text-[#DC2626]">{errors.city.message}</p> : null}
                     </div>
                     <div>
                       <label className="text-sm font-medium text-[#374151]">Region / State</label>
-                      <select {...register("region")} className="mt-2 w-full text-sm">
+                      <select {...register("region")} className={checkoutFieldClass}>
                         {["Greater Accra", "Ashanti", "Western", "Eastern", "Central", "Northern", "Volta", "Brong-Ahafo", "Upper East", "Upper West"].map((r) => (
                           <option key={r} value={r}>
                             {r}
@@ -262,7 +231,7 @@ export function CheckoutPageClient() {
                   </div>
                   <div>
                     <label className="text-sm font-medium text-[#374151]">Country</label>
-                    <select {...register("country")} className="mt-2 w-full text-sm">
+                    <select {...register("country")} className={checkoutFieldClass}>
                       <option>Ghana</option>
                     </select>
                   </div>
@@ -274,14 +243,20 @@ export function CheckoutPageClient() {
                     {DELIVERY_OPTIONS.map((opt) => {
                       const selected = deliveryMethod === opt.id;
                       const ship = shippingForMethod(opt.id, subtotal);
+                      const priceLine =
+                        opt.id === "standard"
+                          ? ship.amount === 0
+                            ? `Free · Orders over ${CURRENCY_SYMBOL}${opt.freeOver ?? 500}`
+                            : `${CURRENCY_SYMBOL}${opt.flatFee.toFixed(2)} · Free over ${CURRENCY_SYMBOL}${opt.freeOver ?? 500}`
+                          : `${CURRENCY_SYMBOL}${opt.flatFee.toFixed(2)}`;
                       return (
                         <button
                           key={opt.id}
                           type="button"
                           onClick={() => deliveryForm.setValue("deliveryMethod", opt.id, { shouldValidate: true })}
                           className={cn(
-                            "flex w-full items-start gap-3 rounded-xl border p-4 text-left transition",
-                            selected ? "border-[#0F172A] ring-1 ring-[#0F172A]" : "border-[#E5E7EB] hover:border-[#CBD5E1]"
+                            "flex w-full items-start gap-4 rounded-2xl border p-4 text-left transition",
+                            selected ? "border-[#0F172A] shadow-[0_0_0_1px_#0F172A]" : "border-[#E5E7EB] hover:border-[#CBD5E1]"
                           )}
                         >
                           <span
@@ -292,13 +267,10 @@ export function CheckoutPageClient() {
                           >
                             {selected ? <Check className="h-3 w-3 text-white" /> : null}
                           </span>
-                          <span className="flex-1">
+                          <span className="min-w-0 flex-1">
                             <span className="block font-semibold text-[#0F172A]">{opt.title}</span>
                             <span className="mt-1 block text-sm text-[#6B7280]">{opt.description}</span>
-                            <span className="mt-2 block text-sm font-medium text-[#374151]">
-                              {opt.id === "standard" && ship.amount === 0 ? "Free" : `${CURRENCY_SYMBOL}${opt.flatFee.toFixed(2)}`}
-                              {opt.id === "standard" && opt.freeOver ? ` · Free over ${CURRENCY_SYMBOL}${opt.freeOver}` : null}
-                            </span>
+                            <span className="mt-2 block text-sm font-medium text-[#374151]">{priceLine}</span>
                           </span>
                         </button>
                       );
@@ -307,7 +279,11 @@ export function CheckoutPageClient() {
                   {errors.deliveryMethod ? <p className="text-xs text-[#DC2626]">{errors.deliveryMethod.message}</p> : null}
                 </section>
 
-                <Button type="submit" className="h-12 w-full rounded-full bg-[#0F172A] text-base font-semibold text-white hover:opacity-90">
+                <Button
+                  type="submit"
+                  disabled={!deliveryStepValid}
+                  className="h-12 w-full rounded-full bg-[#0F172A] text-base font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                >
                   Continue to Payment
                 </Button>
               </form>
@@ -341,7 +317,7 @@ export function CheckoutPageClient() {
           </div>
 
           <div className="hidden lg:block">
-            <div className="sticky top-28">
+            <div className="sticky top-24 lg:top-28">
               <OrderSummaryPanel {...summaryProps} />
             </div>
           </div>
